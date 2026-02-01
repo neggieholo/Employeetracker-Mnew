@@ -1,0 +1,117 @@
+import React, { createContext, useContext, useEffect, useState, ReactNode, useRef } from "react";
+import { io, Socket } from "socket.io-client";
+import { MonitoringContextType, SocketUser, AppNotification } from "./Types/Socket";
+
+
+export const MonitoringContext = createContext<MonitoringContextType | undefined>(undefined);
+
+export default function MonitoringProvider({ children }: { children: ReactNode }) {
+  const socketRef = useRef<Socket | null>(null);
+  const [isConnected, setIsConnected] = useState(false);
+  const [userName, setUserName] = useState<string | null>(null);
+  
+  // Auth States
+  const [sessionId, setSessionId] = useState<string | null>(null);
+  const [pushToken, setPushToken] = useState<string | null>(null);
+
+  // Data States
+  const [onlineMembers, setOnlineMembers] = useState<SocketUser[]>([]);
+  const [notifications, setNotifications] = useState<AppNotification[]>([]);
+
+  useEffect(() => {
+    // Only connect if we have a valid session ID from login
+    if (!sessionId) {
+      if (socketRef.current) {
+        socketRef.current.disconnect();
+        socketRef.current = null;
+      }
+      return;
+    }
+
+    const newSocket = io("http://192.168.8.197:3060", {
+        path: '/api/socket.io', // 👈 MUST match the server path exactly
+        transports: ["websocket"],
+        autoConnect: true,
+        extraHeaders: {
+            cookie: `connect.sid=${sessionId}`
+        },
+        auth: {
+            push_token: pushToken
+        }
+    });
+
+    newSocket.on("connect", () => {
+      setIsConnected(true);
+      console.log("✅ Manager Connected via Session ID");
+    });
+
+    newSocket.on("onlineCheck", (users: SocketUser[]) => {
+      setOnlineMembers(users);
+    });
+
+    newSocket.on("messages", (data: AppNotification | AppNotification[]) => {
+      setNotifications((prev) => {
+        const incoming = Array.isArray(data) ? data : [data];
+        const combined = [...incoming, ...prev];
+        return combined.filter((v, i, a) => a.findIndex(t => t._id === v._id) === i);
+      });
+    });
+
+    newSocket.on("notification_deleted", (id: string) => {
+      setNotifications(prev => prev.filter(n => n._id !== id));
+    });
+
+    newSocket.on("all_notifications_deleted", () => setNotifications([]));
+
+    newSocket.on("disconnect", () => {
+      setIsConnected(false);
+      console.log("❌ Manager Disconnected");
+    });
+
+    socketRef.current = newSocket; // 2. Assign to ref instead of state
+
+    return () => {
+      newSocket.close();
+      socketRef.current = null;
+    };
+  }, [sessionId, pushToken]);
+
+  // Derived State: Clocked Out Members
+  const clockedOutMembers = notifications.filter(n => 
+    n.message.toLowerCase().includes("logged out") || 
+    n.message.toLowerCase().includes("clocked out")
+  );
+
+  const deleteNotification = (notificationId: string) => {
+    socketRef.current?.emit("delete_notification", { notificationId });
+  };
+
+  const deleteAll = () => {
+    socketRef.current?.emit("delete_all_notifications");
+  };
+
+  return (
+    <MonitoringContext.Provider value={{ 
+      onlineMembers, 
+      clockedOutMembers, 
+      notifications, 
+      isConnected, 
+      userName,
+      setUserName,
+      sessionId,
+      pushToken,
+      setSessionId,
+      setPushToken,
+      deleteNotification, 
+      deleteAll 
+    }}>
+      {children}
+    </MonitoringContext.Provider>
+  );
+};
+
+export const useMonitoring = () => {
+  const context = useContext(MonitoringContext);
+  if (!context) throw new Error("useMonitoring must be used within MonitoringProvider");
+  return context;
+};
