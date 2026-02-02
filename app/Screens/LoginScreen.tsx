@@ -143,7 +143,7 @@ export default function LoginScreen() {
               <Text className="font-bold text-gray-500 text-sm">Snametech</Text>
 
               <Image
-                source={require("../../assets/images/ic_location.png")}
+                source={require("../../assets/images/sname_logo.png")}
                 className="w-4 h-4"
                 resizeMode="contain"
               />
