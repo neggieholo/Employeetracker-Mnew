@@ -84,8 +84,8 @@ export default function LoginScreen() {
           </View>
 
           {/* 2. MIDDLE SECTION: Login Form */}
-          <View className="flex-1 justify-center px-8">
-            <View className="w-full p-3 rounded-md shadow-md bg-white">
+          <View className="flex-1 justify-start px-8">
+            <View className="w-full p-3 mt-14 rounded-md shadow-md bg-white">
               <Text className="text-2xl font-bold mb-8 text-gray-800">
                 Login
               </Text>

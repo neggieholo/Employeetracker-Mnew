@@ -21,11 +21,11 @@ export default function Index() {
       console.log("Checking permissions...");
       const ignored = await LocationModule.isBatteryOptimizationIgnored();
 
-      const { status: netStatus } = await Notifications.requestPermissionsAsync();
-      if (netStatus !== 'granted') {
-        alert('Notification permissions are required to show the tracking status.');
-        return;
-      }
+      // const { status: netStatus } = await Notifications.requestPermissionsAsync();
+      // if (netStatus !== 'granted') {
+      //   alert('Notification permissions are required to show the tracking status.');
+      //   return;
+      // }
       
       // 1. Request Foreground
       const { status: fgStatus } = await Location.requestForegroundPermissionsAsync();
