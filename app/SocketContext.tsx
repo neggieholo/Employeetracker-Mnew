@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useState, ReactNode, useRef } from "react";
 import { io, Socket } from "socket.io-client";
-import { MonitoringContextType, SocketUser, AppNotification } from "./Types/Socket";
+import { MonitoringContextType, CleanNotification, CleanSocketUser } from "./Types/Socket";
 
 
 export const MonitoringContext = createContext<MonitoringContextType | undefined>(undefined);
@@ -15,8 +15,9 @@ export default function MonitoringProvider({ children }: { children: ReactNode }
   const [pushToken, setPushToken] = useState<string | null>(null);
 
   // Data States
-  const [onlineMembers, setOnlineMembers] = useState<SocketUser[]>([]);
-  const [notifications, setNotifications] = useState<AppNotification[]>([]);
+  const [onlineMembers, setOnlineMembers] = useState<CleanSocketUser[]>([]);
+  const [notifications, setNotifications] = useState<CleanNotification[]>([]);
+  const badgeCount = notifications.length;
 
   useEffect(() => {
     // Only connect if we have a valid session ID from login
@@ -28,7 +29,7 @@ export default function MonitoringProvider({ children }: { children: ReactNode }
       return;
     }
 
-    const newSocket = io("http://192.168.0.133:3060", {
+    const newSocket = io("http://10.35.61.113:3060", {
         path: '/api/socket.io', // 👈 MUST match the server path exactly
         transports: ["websocket"],
         autoConnect: true,
@@ -45,17 +46,25 @@ export default function MonitoringProvider({ children }: { children: ReactNode }
       console.log("✅ Manager Connected via Session ID");
     });
 
-    newSocket.on("onlineCheck", (users: SocketUser[]) => {
+    newSocket.on("onlineCheck", (users: CleanSocketUser[]) => {
+      console.log("Online members update:", users);
       setOnlineMembers(users);
     });
 
-    newSocket.on("messages", (data: AppNotification | AppNotification[]) => {
-      setNotifications((prev) => {
-        const incoming = Array.isArray(data) ? data : [data];
-        const combined = [...incoming, ...prev];
-        return combined.filter((v, i, a) => a.findIndex(t => t._id === v._id) === i);
-      });
-    });
+    newSocket.on(
+      "messages",
+      (data: CleanNotification | CleanNotification[]) => {
+        setNotifications((prev) => {
+          const incoming = Array.isArray(data) ? data : [data];
+
+          // Combine and remove duplicates based on the _id from your logs
+          const combined = [...incoming, ...prev];
+          return combined.filter(
+            (v, i, a) => a.findIndex((t) => t._id === v._id) === i,
+          );
+        });
+      },
+    );
 
     newSocket.on("notification_deleted", (id: string) => {
       setNotifications(prev => prev.filter(n => n._id !== id));
@@ -94,7 +103,8 @@ export default function MonitoringProvider({ children }: { children: ReactNode }
     <MonitoringContext.Provider value={{ 
       onlineMembers, 
       clockedOutMembers, 
-      notifications, 
+      notifications,
+      badgeCount, 
       isConnected, 
       userName,
       setUserName,

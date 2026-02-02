@@ -1,31 +1,41 @@
 // types/socket.ts
-import { View, Text } from 'react-native'
-import React from 'react'
+export interface AppNotification {
+  _id: string;
+  adminId: string | null;
+  managerId: string;
+  message: string;
+  sender: string;
+  date: string; // ISO Date string from server
+  createdAt: string;
+  updatedAt: string;
+  __v: number;
+}
 
 export interface SocketUser {
   _id: string;
-  role: "admin" | "manager" | "employee";
-  adminId: string | null;
-  managerId: string | null;
+  adminId: string;
+  department: string;
+  email: string;
   firstName: string;
   lastName: string;
-  // include other fields from socket.request.user if needed
+  gender: string;
+  phoneNumber: string;
+  pushToken: string;
+  registeredAt: string;
+  role: string;
+  __v: number;
 }
 
-export interface AppNotification {
-  _id?: string; // from Notification.create / .toObject()
-  sender: string; // e.g., "John Doe"
-  message: string;
-  date: number; // Date.now()
-  timestamp: string | Date; // new Date()
-  adminId: string | null;
-  managerId: string | null;
-}
+// Remove internal DB fields and tokens for UI usage
+export type CleanNotification = Omit<AppNotification, "__v" | "adminId" | "updatedAt">;
+
+export type CleanSocketUser = Omit<SocketUser, "__v" | "pushToken" | "adminId">;
 
 export interface MonitoringContextType {
-  onlineMembers: SocketUser[];
-  clockedOutMembers: AppNotification[];
-  notifications: AppNotification[];
+  onlineMembers: CleanSocketUser[];
+  clockedOutMembers: CleanNotification[];
+  notifications: CleanNotification[];
+  badgeCount: number;
   isConnected: boolean;
   userName: string | null;
   setUserName: (name: string | null) => void;
