@@ -25,3 +25,14 @@ export interface EmployeeClockEvent {
 
 // Clean version for the UI (Optional but recommended)
 export type CleanClockEvent = Omit<EmployeeClockEvent, "__v" | "adminId" | "managerId">;
+
+export default interface NetworkError {
+  message?: string;
+  success?: boolean;
+  response?: {
+    data?: {
+      message?: string;
+      success?: boolean;
+    };
+  };
+}

@@ -1,6 +1,6 @@
 import { CleanClockEvent } from "../Types/Employee";
 
-const BASE_URL = "http://10.35.61.113:3060/api";
+const BASE_URL = "http://192.168.8.192:3060/api";
 
 export default async function postLogin(email: string, password: string) {
   try {

@@ -29,7 +29,7 @@ export default function MonitoringProvider({ children }: { children: ReactNode }
       return;
     }
 
-    const newSocket = io("http://10.35.61.113:3060", {
+    const newSocket = io("http://192.168.8.192:3060", {
         path: '/api/socket.io', // 👈 MUST match the server path exactly
         transports: ["websocket"],
         autoConnect: true,

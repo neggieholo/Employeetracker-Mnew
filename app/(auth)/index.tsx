@@ -1,7 +1,7 @@
-import "../global.css"
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import {
+  Alert,
   Image,
   KeyboardAvoidingView,
   Platform,
@@ -13,6 +13,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useMonitoring } from "../SocketContext";
 import FormInput from "../components/FormInput";
+import "../global.css";
 import registerForPushNotificationsAsync from "../services/Notifications";
 import postLogin from "../services/api";
 
@@ -49,11 +50,21 @@ export default function LoginScreen() {
         setSessionId(response.sessionId || null);
         router.replace("/dashboard");
       } else {
-        setError(response.message || "Login failed");
+        const msg = response.message || "Invalid email or password.";
+        setError(msg);
+        Alert.alert("Login Failed", msg);
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error("Login catch error:", err);
-      setError("Network error. Please check your connection.");
+      const errorMessage =
+        err.response?.data?.message || err.message || "Server is unreachable";
+
+      setError(errorMessage);
+
+      // Properly formatted Alert
+      Alert.alert("Connection Error", `Details: ${errorMessage}`, [
+        { text: "OK" },
+      ]);
     } finally {
       setLoading(false);
     }
