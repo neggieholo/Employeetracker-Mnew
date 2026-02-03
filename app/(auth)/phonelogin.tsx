@@ -1,57 +1,66 @@
 import { useRouter } from "expo-router";
 import React, { useRef, useState } from "react";
 import {
-  Alert,
-  Image,
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  Text,
-  TouchableOpacity,
-  View,
+    Alert,
+    Image,
+    KeyboardAvoidingView,
+    Platform,
+    ScrollView,
+    Text,
+    TouchableOpacity,
+    View,
 } from "react-native";
+import PhoneInput from "react-native-phone-number-input"; // Ensure this is installed
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useMonitoring } from "../SocketContext";
 import FormInput from "../components/FormInput";
 import "../global.css";
 import registerForPushNotificationsAsync from "../services/Notifications";
-import postLogin from "../services/api";
+import { postPhoneLogin } from "../services/api";
 
-
-
-export default function LoginScreen() {
+export default function PhoneLoginScreen() {
   const router = useRouter();
-  const [email, setEmail] = useState<string>("");
+  const phoneInputRef = useRef<PhoneInput>(null);
+
+  // Defaulting to phone mode
+  const [loginMode] = useState<"email" | "phone">("phone");
+  const [phone, setPhone] = useState<string>("");
+  const [formattedPhone, setFormattedPhone] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
+
   const { setSessionId, setPushToken, setUserName } = useMonitoring();
 
   const handleLogin = async () => {
+    // Validation
+    const checkValid = phoneInputRef.current?.isValidNumber(phone);
+    if (!checkValid) {
+      return Alert.alert(
+        "Invalid Phone",
+        "Please enter a valid phone number for your region.",
+      );
+    }
+
     setLoading(true);
-    console.log("Attempting login for:", email);
 
     try {
-      // 1. Try Push Notifications (Don't let this block login)
+      // 1. Push Notifications
       try {
         const pushTokenResponse = await registerForPushNotificationsAsync();
-        if (pushTokenResponse) {
-          setPushToken(pushTokenResponse);
-        }
-      } catch (pushErr) {
-        console.warn("Push token failed, continuing login:", pushErr);
+        if (pushTokenResponse) setPushToken(pushTokenResponse);
+      } catch (e) {
+        console.warn("Push token skipped");
       }
 
-      // 2. Main Login Request
-      const response = await postLogin(email, password);
-      console.log("API Response:", response); // Debugging
+      // 2. Main Phone Login Request
+      const response = await postPhoneLogin(formattedPhone, password);
 
       if (response.success) {
         setUserName(response.displayName || null);
         setSessionId(response.sessionId || null);
         router.replace("/dashboard");
       } else {
-        const msg = response.message || "Invalid email or password.";
-        Alert.alert("Login Failed", msg);
+        Alert.alert("Login Failed", response.message || "Invalid credentials");
       }
     } catch (err: any) {
       console.error("Login catch error:", err);
@@ -70,16 +79,16 @@ export default function LoginScreen() {
   return (
     <SafeAreaView className="flex-1 bg-white">
       <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : undefined} // Android handles this better when undefined or with specific offsets
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
         className="flex-1"
-        keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 20} // Adjust this number if the header blocks the view
+        keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 20}
       >
         <ScrollView
           contentContainerStyle={{ flexGrow: 1 }}
           keyboardShouldPersistTaps="handled"
-          automaticallyAdjustKeyboardInsets={true} // Expo/React Native property to help with padding
+          automaticallyAdjustKeyboardInsets={true}
         >
-          {/* 1. TOP SECTION: Logo & Titles */}
+          {/* 1. TOP SECTION */}
           <View className="items-center mt-10">
             <Image
               source={require("../../assets/images/empt_logo.png")}
@@ -92,33 +101,53 @@ export default function LoginScreen() {
             <Text className="text-xl text-gray-500 font-medium">Manager</Text>
           </View>
 
-          {/* 2. MIDDLE SECTION: Login Form */}
+          {/* 2. MIDDLE SECTION */}
           <View className="flex-1 justify-start px-8">
             <View className="w-full p-3 mt-14 rounded-md shadow-md bg-white">
+              {/* Identical Toggle - Clicking Email goes back to index */}
               <View className="flex-row mb-8 bg-gray-200 p-1 rounded-xl">
-                <TouchableOpacity 
-                  className="flex-1 py-3 rounded-lg items-center bg-white shadow-sm"
-                >
-                  <Text className="font-bold text-[#36AA8F]">Email</Text>
-                </TouchableOpacity>
-                <TouchableOpacity                
-                  onPress={() => router.replace("/phonelogin")}
+                <TouchableOpacity
+                  onPress={() => router.replace("/")}
                   className="flex-1 py-3 rounded-lg items-center"
                 >
-                  <Text className="font-bold text-gray-500">Phone</Text>
+                  <Text className="font-bold text-gray-500">Email</Text>
                 </TouchableOpacity>
+                <View className="flex-1 py-3 rounded-lg items-center bg-white shadow-sm">
+                  <Text className="font-bold text-[#36AA8F]">Phone</Text>
+                </View>
               </View>
+
               <Text className="text-2xl font-bold mb-8 text-gray-800">
                 Login
               </Text>
 
-              <FormInput
-                placeholder="Email Address"
-                value={email}
-                onChangeText={setEmail}
-                keyboardType="email-address"
-                autoCapitalize="none"
-              />
+              {/* Phone Input implementation */}
+              <View className="mb-4">
+                <PhoneInput
+                  ref={phoneInputRef}
+                  defaultValue={phone}
+                  defaultCode="NG"
+                  layout="first"
+                  onChangeText={setPhone}
+                  onChangeFormattedText={setFormattedPhone}
+                  containerStyle={{
+                    width: "100%",
+                    height: 60,
+                    borderRadius: 10,
+                    backgroundColor: "#fff",
+                    borderWidth: 1,
+                    borderColor: "#e5e7eb",
+                  }}
+                  textInputStyle={{
+                    fontSize: 16,
+                    color: "#333",
+                  }}
+                  textContainerStyle={{
+                    backgroundColor: "transparent",
+                    paddingVertical: 0,
+                  }}
+                />
+              </View>
 
               <FormInput
                 placeholder="Password"
@@ -127,7 +156,6 @@ export default function LoginScreen() {
                 secureTextEntry
               />
 
-              {/* Forgot Password Link - Moved under inputs */}
               <TouchableOpacity
                 onPress={() => router.push("/ForgotPassword")}
                 className="items-end mb-6"
@@ -157,13 +185,11 @@ export default function LoginScreen() {
             </View>
           </View>
 
-          {/* 3. BOTTOM SECTION: Footer */}
+          {/* 3. BOTTOM SECTION */}
           <View className="pb-6 items-center">
             <Text className="text-gray-400 text-sm mb-1">Powered by</Text>
-
             <View className="flex-row items-center gap-1">
               <Text className="font-bold text-gray-500 text-sm">Snametech</Text>
-
               <Image
                 source={require("../../assets/images/sname_logo.png")}
                 className="w-4 h-4"

@@ -9,7 +9,15 @@ export default function AuthLayout() {
           <Stack.Screen
             name="index"           // maps to app/index.tsx
             options={{
-              title: "Login", // custom title
+              title: "Email Login", // custom title
+              headerShown: false,    // hide the header
+            }}
+          />
+
+          <Stack.Screen
+            name="phonelogin"           // maps to app/index.tsx
+            options={{
+              title: "Phone Login", // custom title
               headerShown: false,    // hide the header
             }}
           />
