@@ -1,3 +1,5 @@
+import { CleanClockEvent } from "./Employee";
+
 // types/socket.ts
 export interface AppNotification {
   _id: string;
@@ -33,8 +35,8 @@ export type CleanSocketUser = Omit<SocketUser, "__v" | "pushToken" | "adminId">;
 
 export interface MonitoringContextType {
   onlineMembers: CleanSocketUser[];
-  clockedOutMembers: CleanNotification[];
   notifications: CleanNotification[];
+  clockEvents: { in: CleanClockEvent[]; out: CleanClockEvent[] };
   badgeCount: number;
   isConnected: boolean;
   userName: string | null;
@@ -45,5 +47,6 @@ export interface MonitoringContextType {
   setPushToken: (token: string | null) => void;
   deleteNotification: (id: string) => void;
   deleteAll: () => void;
+  disconnectSocket: () => void;
 }
 

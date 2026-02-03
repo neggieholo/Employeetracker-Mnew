@@ -30,6 +30,7 @@ export default function TenantTabsLayout() {
           name="Profile"
           options={{
             title: "Profile",
+            headerShown: false,
             tabBarIcon: ({ color, size }) => <Ionicons name="person" size={size} color={color} />,
           }}
         />
@@ -38,6 +39,7 @@ export default function TenantTabsLayout() {
           name="Records"
           options={{
             title: "Records",
+            headerShown: false,
             tabBarIcon: ({ color, size }) => <Ionicons name="clipboard" size={size} color={color} />,
           }}
         />
@@ -46,6 +48,7 @@ export default function TenantTabsLayout() {
           name="Subordinates"
           options={{
             title: "Subordinates",
+            headerShown: false,
             tabBarIcon: ({ color, size }) => <Ionicons name="people" size={size} color={color} />,
           }}
         />

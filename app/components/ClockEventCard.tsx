@@ -8,7 +8,7 @@ interface Props {
   type: 'in' | 'out';
 }
 
-export const ClockEventCard = ({ event, type }: Props) => {
+export default function ClockEventCard ({ event, type }: Props) {
   // Use clockOutTime if it's a clock-out event, otherwise clockInTime
   const displayTime = type === 'out' && event.clockOutTime 
     ? event.clockOutTime 

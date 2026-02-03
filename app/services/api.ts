@@ -1,6 +1,6 @@
 import { CleanClockEvent } from "../Types/Employee";
 
-const BASE_URL = "http://192.168.8.192:3060/api";
+const BASE_URL = "http://10.35.61.113:3060/api";
 
 export default async function postLogin(email: string, password: string) {
   try {
@@ -21,6 +21,20 @@ export default async function postLogin(email: string, password: string) {
     return { success: false, message: "Network error" };
   }
 }
+
+export const postPhoneLogin = async (phoneNumber: string, password: string) => {
+  try {
+    const res = await fetch(`${BASE_URL}/manager/phone_login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ phoneNumber, password }),
+      credentials: "include", // 🟢 Critical for session handling
+    });
+    return await res.json();
+  } catch (err: any) {
+    return { success: false, message: "Network error" };
+  }
+};
 
 export const postRegister = async (
   name: string,
@@ -58,17 +72,6 @@ export const resetPasswordLink = async (email: string) => {
     console.log("Reset password error:", err);
     return { success: false, message: "Network error" };
   }
-};
-
-export const getDashboardData = async () => {
-  const res = await fetch(`${BASE_URL}/tenant/dashboard`, {
-    method: "GET",
-    headers: { "Content-Type": "application/json" },
-    credentials: "include",
-  });
-
-  const data = await res.json();
-  return data;
 };
 
 export const postChangePassword = async (
@@ -154,3 +157,38 @@ export const fetchTodayClock = async (): Promise<{
     return { clockedInEvents: [], clockedOutEvents: [] };
   }
 };
+
+
+export const registerWorker = async (userData: any) => {
+  const response = await fetch(`${BASE_URL}/manager/register_worker`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(userData),
+  });
+
+  // We parse the data here so the component doesn't have to
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(data.error || "Server registration failed");
+  }
+
+  return data;
+};
+
+export const getProfile = async () => {
+  try {
+    const res = await fetch(`${BASE_URL}/manager/profile`, {
+      method: "GET",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include", // Crucial for session-based auth
+    });
+
+    const data = await res.json();
+    return data;
+  } catch (err) {
+    console.log("Profile Fetch Error:", err);
+    return { success: false, message: "Network error fetching profile" };
+  }
+};
+

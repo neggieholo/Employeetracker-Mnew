@@ -1,9 +1,11 @@
+import * as Location from "expo-location";
 import { useEffect, useRef, useState } from "react";
 import { ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { WebView } from "react-native-webview";
 import * as LocationModule from "../../../modules/LocationModule";
 import "../../global.css";
-import * as Location from 'expo-location';
+import { useMonitoring } from "@/app/SocketContext";
+import { router } from "expo-router";
 
 type LocationState = {
   latitude: number;
@@ -14,22 +16,34 @@ type LocationState = {
 export default function Dashboard() {
   const [location, setLocation] = useState<LocationState | null>(null);
   const webViewRef = useRef<WebView>(null);
+  const { onlineMembers, clockEvents } = useMonitoring();
 
   useEffect(() => {
-    
     const startTrackingSafely = async () => {
       console.log("Checking permissions...");
+
+      const serviceEnabled = await Location.hasServicesEnabledAsync();
+      if (!serviceEnabled) {
+        try {
+          // This triggers the native Android popup to turn on Location
+          await Location.enableNetworkProviderAsync();
+        } catch (error:any) {
+          console.log("User refused to enable location services");
+          return; // Stop if they won't turn it on
+        }
+      }
       const ignored = await LocationModule.isBatteryOptimizationIgnored();
 
-      const { status: fgStatus } = await Location.requestForegroundPermissionsAsync();
-      
-      if (fgStatus === 'granted') {
+      const { status: fgStatus } =
+        await Location.requestForegroundPermissionsAsync();
+
+      if (fgStatus === "granted") {
         await Location.requestBackgroundPermissionsAsync();
-        
+
         console.log("Permissions granted, starting native module...");
-        if(!ignored) {
+        if (!ignored) {
           try {
-              LocationModule.requestBatteryOptimization();
+            LocationModule.requestBatteryOptimization();
           } catch (e) {
             console.log("Battery setting popup skipped or failed", e);
           }
@@ -114,21 +128,27 @@ export default function Dashboard() {
     >
       {/* 1. Vertically Stacked Buttons at the Top */}
       <View className="flex gap-3 mb-5 w-[85%] mx-auto">
-        <TouchableOpacity className="bg-yellow-500 p-4 rounded-xl shadow-sm items-center border border-gray-200">
+        <TouchableOpacity 
+        className="bg-yellow-500 p-4 rounded-xl shadow-sm items-center border border-gray-200"
+        onPress={()=>{router.push('/onliners')}}>
           <Text className="text-gray-800 font-semibold text-base">
-            Online: 0
+            Online: {onlineMembers.length}
           </Text>
         </TouchableOpacity>
 
-        <TouchableOpacity className="bg-green-500 p-4 rounded-xl shadow-sm items-center border border-gray-200">
+        <TouchableOpacity 
+        className="bg-green-500 p-4 rounded-xl shadow-sm items-center border border-gray-200"
+        onPress={()=>{router.push('/clockins')}}>
           <Text className="text-gray-800 font-semibold text-base">
-            Clocked In: 0
+            Clocked In: {clockEvents.in.length}
           </Text>
         </TouchableOpacity>
 
-        <TouchableOpacity className="bg-red-500 p-4 rounded-xl shadow-sm items-center border border-gray-200">
+        <TouchableOpacity 
+        className="bg-red-500 p-4 rounded-xl shadow-sm items-center border border-gray-200"
+        onPress={()=>{router.push('/clockouts')}}>
           <Text className="text-gray-800 font-semibold text-base">
-            Clocked Out: 0
+            Clocked Out: {clockEvents.out.length}
           </Text>
         </TouchableOpacity>
       </View>

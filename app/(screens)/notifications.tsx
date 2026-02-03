@@ -1,9 +1,7 @@
 import React from "react";
 import { View, Text, FlatList, TouchableOpacity } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { useMonitoring } from "../SocketContext";
-import { X, BellOff, Trash2, ArrowLeft } from "lucide-react-native";
-import { router } from "expo-router";
+import { X, BellOff, Trash2 } from "lucide-react-native";
 
 export default function NotificationsScreen() {
   const { notifications, deleteNotification, deleteAll } = useMonitoring();
@@ -31,15 +29,9 @@ export default function NotificationsScreen() {
   );
 
   return (
-    <SafeAreaView className="flex-1 bg-gray-50">
+    <View className="flex-1 bg-gray-50">
       {/* Header */}
-      <View className="flex-row items-center justify-between px-4 py-4 bg-white shadow-sm">
-        <View className="flex-row items-center">
-          <TouchableOpacity onPress={() => router.back()} className="mr-3">
-            <ArrowLeft size={24} color="#36AA8F" />
-          </TouchableOpacity>
-          <Text className="text-xl font-bold text-gray-800">Notifications</Text>
-        </View>
+      <View className="flex-row items-center justify-end px-4 py-4 bg-white shadow-sm">
 
         {notifications.length > 0 && (
           <TouchableOpacity 
@@ -65,6 +57,6 @@ export default function NotificationsScreen() {
           </View>
         )}
       />
-    </SafeAreaView>
+    </View>
   );
 }

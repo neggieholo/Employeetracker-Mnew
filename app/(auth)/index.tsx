@@ -15,7 +15,10 @@ import { useMonitoring } from "../SocketContext";
 import FormInput from "../components/FormInput";
 import "../global.css";
 import registerForPushNotificationsAsync from "../services/Notifications";
-import postLogin from "../services/api";
+import postLogin, { postPhoneLogin } from "../services/api";
+import PhoneInput from "react-native-phone-number-input";
+
+
 
 export default function LoginScreen() {
   const router = useRouter();

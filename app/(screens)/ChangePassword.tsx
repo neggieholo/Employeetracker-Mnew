@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { View, Text, TextInput, TouchableOpacity, ActivityIndicator, Alert } from "react-native";
 import { router } from "expo-router";
-import { Lock, ChevronLeft, CheckCircle2, AlertCircle } from "lucide-react-native";
+import { Lock, CheckCircle2, AlertCircle } from "lucide-react-native";
 import { postChangePassword } from "../services/api";
 
 export default function ChangePassword() {
@@ -23,10 +23,12 @@ export default function ChangePassword() {
       return;
     }
 
-    if (newPassword.length < 6) {
-      setError("Password must be at least 6 characters");
-      return;
-    }
+    if (newPassword.length <= 8) {
+    const passError = "New password must be more than 8 characters";
+    setError(passError);
+    Alert.alert("Security Requirement", passError);
+    return;
+  }
 
     setError(null);
     setLoading(true);
@@ -51,14 +53,6 @@ export default function ChangePassword() {
 
   return (
     <View className="flex-1 bg-gray-50">
-      {/* Header Bar */}
-      <View className="bg-[#36AA8F] pt-12 pb-6 px-4 flex-row items-center">
-        <TouchableOpacity onPress={() => router.back()} className="mr-4">
-          <ChevronLeft color="white" size={28} />
-        </TouchableOpacity>
-        <Text className="text-white text-xl font-bold">Change Password</Text>
-      </View>
-
       <View className="p-6">
         <Text className="text-gray-500 mb-8">
           Ensure your new password is secure and at least 6 characters long.
