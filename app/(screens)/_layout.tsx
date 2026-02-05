@@ -54,6 +54,14 @@ export default function ScreensLayout() {
               headerShown: true,
             }}
           />
+
+          <Stack.Screen
+            name="subordinateProfile"
+            options={{
+              title: "Subordinate Profile",
+              headerShown: true,
+            }}
+          />
         </Stack>
     </SafeAreaProvider>
   );

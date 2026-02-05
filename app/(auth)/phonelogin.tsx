@@ -1,14 +1,14 @@
 import { useRouter } from "expo-router";
 import React, { useRef, useState } from "react";
 import {
-    Alert,
-    Image,
-    KeyboardAvoidingView,
-    Platform,
-    ScrollView,
-    Text,
-    TouchableOpacity,
-    View,
+  Alert,
+  Image,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import PhoneInput from "react-native-phone-number-input"; // Ensure this is installed
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -22,8 +22,6 @@ export default function PhoneLoginScreen() {
   const router = useRouter();
   const phoneInputRef = useRef<PhoneInput>(null);
 
-  // Defaulting to phone mode
-  const [loginMode] = useState<"email" | "phone">("phone");
   const [phone, setPhone] = useState<string>("");
   const [formattedPhone, setFormattedPhone] = useState<string>("");
   const [password, setPassword] = useState<string>("");
@@ -105,7 +103,7 @@ export default function PhoneLoginScreen() {
           <View className="flex-1 justify-start px-8">
             <View className="w-full p-3 mt-14 rounded-md shadow-md bg-white">
               {/* Identical Toggle - Clicking Email goes back to index */}
-              <View className="flex-row mb-8 bg-gray-200 p-1 rounded-xl">
+              <View className="flex-row mb-3 bg-gray-200 p-1 rounded-xl">
                 <TouchableOpacity
                   onPress={() => router.replace("/")}
                   className="flex-1 py-3 rounded-lg items-center"
@@ -117,7 +115,7 @@ export default function PhoneLoginScreen() {
                 </View>
               </View>
 
-              <Text className="text-2xl font-bold mb-8 text-gray-800">
+              <Text className="text-2xl font-bold mb-3 text-gray-800">
                 Login
               </Text>
 
@@ -132,16 +130,14 @@ export default function PhoneLoginScreen() {
                   onChangeFormattedText={setFormattedPhone}
                   containerStyle={{
                     width: "100%",
-                    height: 60,
+                    height: 40,
                     borderRadius: 10,
-                    backgroundColor: "#fff",
+                    backgroundColor: "#D1D5DB",
                     borderWidth: 1,
-                    borderColor: "#e5e7eb",
+                    borderColor: "#374151",
                   }}
-                  textInputStyle={{
-                    fontSize: 16,
-                    color: "#333",
-                  }}
+                  textInputStyle={{ color: "#000" }}
+                  codeTextStyle={{ color: "#000" }}
                   textContainerStyle={{
                     backgroundColor: "transparent",
                     paddingVertical: 0,
@@ -151,6 +147,8 @@ export default function PhoneLoginScreen() {
 
               <FormInput
                 placeholder="Password"
+                placeholderTextColor="#000000"
+                className="bg-[#D1D5DB] text-black h-[40px] rounded-lg px-4 border border-[#6B7280]"
                 value={password}
                 onChangeText={setPassword}
                 secureTextEntry

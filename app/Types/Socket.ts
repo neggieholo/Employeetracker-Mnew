@@ -50,3 +50,8 @@ export interface MonitoringContextType {
   disconnectSocket: () => void;
 }
 
+export interface SearchClockResponse {
+  success: boolean;
+  message?: string;
+  clockEvents: CleanClockEvent[];
+}

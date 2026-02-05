@@ -47,7 +47,7 @@ export default function TenantTabsLayout() {
         <Tabs.Screen
           name="Subordinates"
           options={{
-            title: "Subordinates",
+            title: "My Subordinates",
             headerShown: false,
             tabBarIcon: ({ color, size }) => <Ionicons name="people" size={size} color={color} />,
           }}

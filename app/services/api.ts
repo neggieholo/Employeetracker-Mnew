@@ -1,4 +1,5 @@
 import { CleanClockEvent } from "../Types/Employee";
+import { SearchClockResponse } from "../Types/Socket";
 
 const BASE_URL = "http://10.35.61.113:3060/api";
 
@@ -192,3 +193,88 @@ export const getProfile = async () => {
   }
 };
 
+export const getSubordinates = async () => {
+  try {
+    const res = await fetch(`${BASE_URL}/manager/subordinates`, {
+      method: "GET",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+    });
+
+    const data = await res.json();
+    return data; // Returns { success: true, employees: [...] }
+  } catch (err) {
+    console.error("Fetch subordinates error:", err);
+    return { success: false, message: "Network error fetching subordinates" };
+  }
+};
+
+/**
+ * Deletes a specific worker by ID
+ * @param workerId - The MongoDB _id of the worker
+ */
+export const deleteSubordinate = async (workerId: string) => {
+  try {
+    const res = await fetch(`${BASE_URL}/manager/subordinates/delete`, {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ workerId }),
+      credentials: "include",
+    });
+
+    const data = await res.json();
+    
+    if (!res.ok) {
+        throw new Error(data.error || "Failed to delete worker");
+    }
+
+    return { success: true, message: data.message };
+  } catch (err: any) {
+    console.error("Delete subordinate error:", err);
+    return { success: false, message: err.message || "Network error" };
+  }
+};
+
+/**
+ * Searches for clock events. 
+ * All arguments are optional. If none are provided, returns 10 most recent.
+ */
+export const searchClockEvents = async (
+  startDate?: string | null, 
+  endDate?: string | null, 
+  name?: string | null
+): Promise<SearchClockResponse> => {
+  try {
+    const body: any = {};
+
+    // 1. Handle Name (only add if string is not empty/null)
+    if (name && name.trim() !== "") {
+      body.name = name.trim();
+    }
+
+    // 2. Handle Dates (only add dateQuery if startDate exists)
+    if (startDate) {
+      body.dateQuery = {
+        startDate,
+        endDate: endDate || startDate, // Fallback to startDate if no range is selected
+      };
+    }
+
+    const res = await fetch(`${BASE_URL}/manager/search-clock-events`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify(body),
+    });
+
+    const data = await res.json();
+    return data;
+  } catch (err) {
+    console.error("❌ Search Clock Events Error:", err);
+    return { 
+      success: false, 
+      message: "Network error while searching records", 
+      clockEvents: [] 
+    };
+  }
+};

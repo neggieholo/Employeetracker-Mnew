@@ -1,5 +1,5 @@
 import { useRouter } from "expo-router";
-import React, { useRef, useState } from "react";
+import React, {  useState } from "react";
 import {
   Alert,
   Image,
@@ -95,7 +95,7 @@ export default function LoginScreen() {
           {/* 2. MIDDLE SECTION: Login Form */}
           <View className="flex-1 justify-start px-8">
             <View className="w-full p-3 mt-14 rounded-md shadow-md bg-white">
-              <View className="flex-row mb-8 bg-gray-200 p-1 rounded-xl">
+              <View className="flex-row mb-3 bg-gray-200 p-1 rounded-xl">
                 <TouchableOpacity 
                   className="flex-1 py-3 rounded-lg items-center bg-white shadow-sm"
                 >
@@ -108,12 +108,14 @@ export default function LoginScreen() {
                   <Text className="font-bold text-gray-500">Phone</Text>
                 </TouchableOpacity>
               </View>
-              <Text className="text-2xl font-bold mb-8 text-gray-800">
+              <Text className="text-2xl font-bold mb-3 text-gray-800">
                 Login
               </Text>
 
               <FormInput
                 placeholder="Email Address"
+                placeholderTextColor="#000000"
+                className="bg-[#D1D5DB] text-black h-[40px] rounded-lg px-4 border border-[#6B7280]"
                 value={email}
                 onChangeText={setEmail}
                 keyboardType="email-address"
@@ -122,6 +124,8 @@ export default function LoginScreen() {
 
               <FormInput
                 placeholder="Password"
+                placeholderTextColor="#000000"
+                className="bg-[#D1D5DB] text-black h-[40px] rounded-lg px-4 border border-[#6B7280]"
                 value={password}
                 onChangeText={setPassword}
                 secureTextEntry

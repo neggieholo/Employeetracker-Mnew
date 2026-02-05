@@ -1,19 +1,21 @@
+import { useRouter } from "expo-router";
 import React, {
   createContext,
+  ReactNode,
   useContext,
   useEffect,
-  useState,
-  ReactNode,
   useRef,
+  useState,
 } from "react";
+import { Alert } from "react-native";
 import { io, Socket } from "socket.io-client";
+import { fetchTodayClock, postLogout } from "./services/api";
+import { CleanClockEvent } from "./Types/Employee";
 import {
-  MonitoringContextType,
   CleanNotification,
   CleanSocketUser,
+  MonitoringContextType,
 } from "./Types/Socket";
-import { CleanClockEvent } from "./Types/Employee";
-import { fetchTodayClock } from "./services/api";
 
 export const MonitoringContext = createContext<
   MonitoringContextType | undefined
@@ -27,6 +29,7 @@ export default function MonitoringProvider({
   const socketRef = useRef<Socket | null>(null);
   const [isConnected, setIsConnected] = useState(false);
   const [userName, setUserName] = useState<string | null>(null);
+  const router = useRouter();
 
   // Auth States
   const [sessionId, setSessionId] = useState<string | null>(null);
@@ -102,9 +105,28 @@ export default function MonitoringProvider({
 
     newSocket.on("all_notifications_deleted", () => setNotifications([]));
 
-    newSocket.on("disconnect", () => {
+    newSocket.on("disconnect", async (reason) => {
       setIsConnected(false);
       console.log("❌ Manager Disconnected");
+      if (
+        reason === "io server disconnect" ||
+        reason === "io client disconnect"
+      ) {
+        try {
+          await postLogout();
+          setSessionId(null); // Clear local state
+          router.replace("/");
+          Alert.alert(
+            "Session Ended",
+            "You have been logged out by the server.",
+          );
+        } catch (err) {
+          router.replace("/");
+        }
+      } else {
+        // It was just a network drop! Socket.io will try to reconnect automatically.
+        console.log("Keep calm, attempting to reconnect...");
+      }
     });
 
     socketRef.current = newSocket; // 2. Assign to ref instead of state
@@ -113,32 +135,32 @@ export default function MonitoringProvider({
       newSocket.close();
       socketRef.current = null;
     };
-  }, [sessionId, pushToken]);
+  }, [sessionId, pushToken, router]);
 
   useEffect(() => {
-  // Only start polling if we are connected/authenticated
-  if (!sessionId) return;
+    // Only start polling if we are connected/authenticated
+    if (!sessionId) return;
 
-  const performFetch = async () => {
-    console.log("🔄 Background Polling: Fetching Clock Events...");
-    const data = await fetchTodayClock();
-    setClockEvents({
-      in: data.clockedInEvents,
-      out: data.clockedOutEvents,
-    });
-  };
+    const performFetch = async () => {
+      console.log("🔄 Background Polling: Fetching Clock Events...");
+      const data = await fetchTodayClock();
+      setClockEvents({
+        in: data.clockedInEvents,
+        out: data.clockedOutEvents,
+      });
+    };
 
-  // Initial fetch
-  performFetch();
+    // Initial fetch
+    performFetch();
 
-  // Polling every 5 seconds
-  const interval = setInterval(performFetch, 5000);
+    // Polling every 5 seconds
+    const interval = setInterval(performFetch, 5000);
 
-  return () => {
-    console.log("🛑 Stopping Background Polling");
-    clearInterval(interval);
-  };
-}, [sessionId]);
+    return () => {
+      console.log("🛑 Stopping Background Polling");
+      clearInterval(interval);
+    };
+  }, [sessionId]);
 
   const deleteNotification = (notificationId: string) => {
     socketRef.current?.emit("delete_notification", { notificationId });

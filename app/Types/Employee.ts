@@ -36,3 +36,26 @@ export default interface NetworkError {
     };
   };
 }
+
+export interface Employee {
+  id: string;
+  fullName: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phoneNumber: string;
+  department: string;
+  gender: string;
+  role: string;
+  supervisingManagerId?: string;
+}
+
+// This matches the format expected by your Profile/Detail view
+export type EmployeeProfile = {
+  Name: string;
+  Email: string;
+  Phone: string;
+  Department: string;
+  Gender: string;
+  Role: string;
+};
