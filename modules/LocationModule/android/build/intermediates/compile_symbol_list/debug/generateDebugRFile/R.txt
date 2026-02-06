@@ -1,1 +1,0 @@
-int drawable ic_location 0x0

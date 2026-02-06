@@ -1,2 +1,0 @@
-com.snametech.employeetrackerManager
-drawable ic_location

@@ -5,6 +5,8 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
 import android.content.Intent
+import android.graphics.Paint
+import android.graphics.pdf.PdfDocument
 import androidx.core.content.ContextCompat
 import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
@@ -14,7 +16,13 @@ import androidx.core.net.toUri
 import android.os.PowerManager
 import android.net.Uri
 import android.os.Build
+import android.os.Environment
 import android.provider.Settings
+import java.io.File
+import java.io.FileOutputStream
+import android.app.DatePickerDialog
+import java.util.Calendar
+import expo.modules.kotlin.Promise
 
 class LocationModule : Module() {
 
@@ -100,6 +108,66 @@ class LocationModule : Module() {
             val powerManager = appContext.reactContext?.getSystemService(Context.POWER_SERVICE) as? PowerManager
             val packageName = appContext.reactContext?.packageName
             return@Function powerManager?.isIgnoringBatteryOptimizations(packageName) ?: false
+        }
+
+        Function("saveCSV") { fileName: String, content: String ->
+            try {
+                // Use the Public Downloads folder
+                val downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+                val file = File(downloadsDir, fileName)
+
+                file.writeText(content)
+                return@Function "Saved to Downloads: ${file.name}"
+            } catch (e: Exception) {
+                return@Function "Error: ${e.message}"
+            }
+        }
+
+        Function("generateSimplePDF") { fileName: String, content: String ->
+            try {
+                val downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+                val file = File(downloadsDir, fileName)
+
+                val pdfDocument = PdfDocument()
+                val pageInfo = PdfDocument.PageInfo.Builder(595, 842, 1).create()
+                val page = pdfDocument.startPage(pageInfo)
+
+                val canvas = page.canvas
+                val paint = Paint()
+                paint.textSize = 12f
+
+                var y = 40f
+                content.split("\n").forEach { line ->
+                    canvas.drawText(line, 40f, y, paint)
+                    y += 20f
+                }
+
+                pdfDocument.finishPage(page)
+                val outputStream = FileOutputStream(file)
+                pdfDocument.writeTo(outputStream)
+
+                pdfDocument.close()
+                outputStream.close()
+
+                return@Function "Saved to Downloads: ${file.name}"
+            } catch (e: Exception) {
+                return@Function "Error: ${e.message}"
+            }
+        }
+        
+       
+        AsyncFunction("showNativePicker") { promise: Promise ->
+            // The label here MUST match the "AsyncFunction" name
+            val activity = appContext.currentActivity ?: return@AsyncFunction
+            
+            val cal = Calendar.getInstance()
+            val dpd = DatePickerDialog(activity, { _, year, month, dayOfMonth ->
+                val m = month + 1
+                val dateString = String.format("%d-%02d-%02d", year, m, dayOfMonth)
+                promise.resolve(dateString)
+            }, cal.get(Calendar.YEAR), cal.get(Calendar.MONTH), cal.get(Calendar.DAY_OF_MONTH))
+            
+            dpd.show()
         }
     } 
 }

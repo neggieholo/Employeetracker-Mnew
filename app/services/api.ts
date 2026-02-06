@@ -268,6 +268,7 @@ export const searchClockEvents = async (
     });
 
     const data = await res.json();
+    console.log("SearchClockEvents Response:", data);
     return data;
   } catch (err) {
     console.error("❌ Search Clock Events Error:", err);

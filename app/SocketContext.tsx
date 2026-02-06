@@ -116,10 +116,10 @@ export default function MonitoringProvider({
           await postLogout();
           setSessionId(null); // Clear local state
           router.replace("/");
-          Alert.alert(
-            "Session Ended",
-            "You have been logged out by the server.",
-          );
+          // Alert.alert(
+          //   "Session Ended",
+          //   "You have been logged out by the server.",
+          // );
         } catch (err) {
           router.replace("/");
         }

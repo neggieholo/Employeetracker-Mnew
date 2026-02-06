@@ -38,4 +38,18 @@ export function addLocationListener(
   return LocationTrackingModule.addListener('onLocationUpdate', listener);
 }
 
+// Add to your index.ts
+
+export function saveCSV(fileName: string, content: string): string {
+  return LocationTrackingModule.saveCSV(fileName, content);
+}
+
+export function generateSimplePDF(fileName: string, content: string): string {
+  return LocationTrackingModule.generateSimplePDF(fileName, content);
+}
+
+export function showNativePicker(): Promise<string> {
+  return LocationTrackingModule.showNativePicker();
+}
+
 export default LocationTrackingModule;
